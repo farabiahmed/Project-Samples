@@ -44,6 +44,10 @@ public string Name  {
 }
 ```
 
+### What is the difference between `const` and `readonly`?
+---
+The readonly keyword differs from the const keyword. A const field can only be initialized at the declaration of the field. A readonly field can be initialized either at the declaration or in a constructor
+
 ### What is the use of Checked and Unchecked keywords? ###
 ---
 Checked: Adds exceptions on number overflows.
