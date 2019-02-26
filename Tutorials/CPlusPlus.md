@@ -15,6 +15,7 @@
 * RAII (Resource Acquisition Is Initialization)
 * Type Safety
 * RTTI
+* override keyword
 
 ## C++ Guide
 http://www.stroustrup.com/C++11FAQ.html
@@ -100,6 +101,11 @@ Virtual functions are member functions of class which is declared using keyword 
 ### What is virtual destructors? Why they are used?
 [polymorphism related]
 Virtual destructors are used for the same purpose as virtual functions. When you remove an object of subclass, which is referenced by a parent class pointer, only destructor of base class will get executed. But if the destructor is defined using virtual keyword, both the destructors [ of parent and sub class ] will get invoked.
+
+### What is the `override` keyword?
+The override keyword serves two purposes: 
+* It shows the reader of the code that "this is a virtual method, that is overriding a virtual method of the base class." 
+* The compiler also knows that it's an override, so it can "check" that you are not altering/adding new methods that you think are overrides.
 
 ### Explain the volatile and mutable keywords
 
