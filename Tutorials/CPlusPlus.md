@@ -11,7 +11,11 @@
 * object slicing
 * Template, typename vs class
 * move vs forward (rvalues)
-* 
+* lambdas
+* RAII (Resource Acquisition Is Initialization)
+* Type Safety
+* RTTI
+
 ## C++ Guide
 http://www.stroustrup.com/C++11FAQ.html
 https://channel9.msdn.com/Events/GoingNative/2013/An-Effective-Cpp11-14-Sampler
@@ -103,6 +107,21 @@ The volatile keyword informs the compiler that a variable will be used by multip
 
 The mutable keyword can be used for class member variables. Mutable variables are allowed to change from within const member functions of the class.
 
+### What is `RAII`?
+Specifically, RAII ensures that the acquisition of a resource occurs at the initialization of the object, and the release of the resources occurs when the object is no longer needed.
+`std::unique_ptr[]` and `std::shared_ptr{}` leverage this exact design pattern
+
+### What is `RTTI`?
+
+
+### What is `Type Safety`?
+Standard C is not a type-safe language. Type safety refers to protections put in place to prevent one type from being confused with another type. 
+```cpp
+/* Example: C */
+int *p = malloc(sizeof(int)); //(implicit type conversion)
+// Example: C++
+auto p = new int;
+```
 ### What are the Rule Of Five? ###
 By default, a class has 5 operations:
 * copy assignment
@@ -137,7 +156,28 @@ By default, a class has 5 operations:
     { 
         return (a < b) ? a : b; 
     } 
+    
+    // auto is useless for functions (since you have to write the return type either way), right? NO! see template based example below!
+    auto f() -> int { return 0; } // a legal C++ function only in C++11
+    
+    // Suppose you have template<class T> class Vector, 
+    // and want to implement Vector-skalar multiplcation multiply(Vector<T> const& v, X x). 
+    // What would be the return type?
+    template<class T, class X> 
+    auto multiply(Vector<T> const& v, X x) -> Vector<decltype(v[0] * x)> {...}
     ```
+### What is `constexpr`?
+With C++11, constexpr was added as a statement to the compiler that a variable, function, and so on, can be evaluated at compile time and optimized, reducing the complexity of the code at runtime and improving performance overall.
+
+C++17 adds a `constexpr if` statement, which tells the compiler to specifically optimize the branch at compile time.
+#### What are the differences between `define` and `constexpr` and `const`?
+`Define` vs `constexpr`
+- scope
+- memory location
+- type
+
+`constexpr` vs `const`
+The principal difference between const and constexpr is the time when their initialization values are known (evaluated). While the values of const variables can be evaluated at both compile time and runtime, constexpr are always evaluated at compile time.
 
 ### What are smart pointers? ###
 * std::unique_ptr, 
@@ -189,10 +229,57 @@ struct Z {
 	Z(long) = delete; // but not anything less
 };
 ```
-### What are the usage of `std::move` and `std::forward`?
+### RValues
+---
+### How to catch rValue in a function?
+```cpp
+void overloaded( int const &arg ) { std::cout << "by lvalue\n"; }
+void overloaded( int && arg ) { std::cout << "by rvalue\n"; }
+```
+#### What are the usage of `std::move` and `std::forward`?
 https://tests4geeks.com/cpp-online-test
+`move`: (unconditioned, l to r, r to r) : takes an object and allows you to treat it as a temporary (an rvalue).
+`forward`: (conditioned, l to l, r to r) This allows rvalue arguments to be passed on as rvalues, and lvalues to be passed on as lvalues. 
 
-### What is `if-it-has-a-name rule` of rvalues?
+### Then, what is the usage of std::forward?
+If an rvalue has a name, it is normally considered as lvalue if `forward` is not used, in other words if it passed via simple passing. 
+
+Example:
+```cpp
+void overloaded( int const &arg ) { std::cout << "by lvalue\n"; }
+void overloaded( int && arg ) { std::cout << "by rvalue\n"; }
+ 
+template< typename t >
+/* "t &&" with "t" being template param is special, and  adjusts "t" to be
+   (for example) "int &" or non-ref "int" so std::forward knows what to do. */
+void forwarding( t && arg ) {
+    std::cout << "via std::forward: ";
+    overloaded( std::forward< t >( arg ) );
+    std::cout << "via std::move: ";
+    overloaded( std::move( arg ) ); // conceptually this would invalidate arg
+    std::cout << "by simple passing: ";
+    overloaded( arg );
+}
+ 
+int main() {
+    std::cout << "initial caller passes rvalue:\n";
+    forwarding( 5 );
+    std::cout << "initial caller passes lvalue:\n";
+    int x = 5;
+    forwarding( x );
+}
+```
+Expected output:
+initial caller passes rvalue: 
+via std::forward: by rvalue **(with forward it is considered as rvalue)**
+via std::move: by rvalue
+by simple passing: by lvalue **(without forward it is considered as lvalue)**
+initial caller passes lvalue:
+via std::forward: by lvalue
+via std::move: by rvalue
+by simple passing: by lvalue
+
+#### What is `if-it-has-a-name rule` of rvalues?
 Things that are declared as rvalue reference can be lvalues or rvalues. The distinguishing criterion is: if it has a name, then it is an lvalue. Otherwise, it is an rvalue.
 ```cpp
 Derived(Derived&& rhs) 
@@ -208,6 +295,64 @@ Derived(Derived&& rhs)
 ```
 std::move "turns its argument into an rvalue even if it isn't," and it achieves that by "hiding the name." It passes its argument right through by reference, doing nothing with it at all, and its result type is rvalue reference.
 
+#### State which of the following lettered statements will not compile:
+```cpp
+int main() {
+	int x;
+	
+	// l-value references
+	int &ref1 = x; // A
+	int &ref2 = 5; // B
+	
+	const int &ref3 = x; // C
+	const int &ref4 = 5; // D
+
+	// r-value references
+	int &&ref5 = x; // E
+	int &&ref6 = 5; // F
+
+	const int &&ref7 = x; // G
+	const int &&ref8 = 5; // H
+	
+	return 0;
+}
+```
+Solution:
+B, E, and G won’t compile.
+B: you cannot change a literal. 
+
+### Lambdas
+---
+C++ 11 introduced lambda expression to allow us write an inline function which can be used for short snippets of code that are not going to be reuse and not worth naming. In its simplest form lambda expression can be defined as follows:
+
+        [ capture clause ] (parameters) -> return-type  
+        {   
+           definition of method   
+        } 
+
+#### How to get input parameters into lambda (capture clause)?
+      [&] : capture all external variable by reference
+      [=] : capture all external variable by value
+      [a, &b] : capture a by value and b by reference
+      
+#### Example:
+```cpp    
+    int N = 5;
+    // below snippet find first number greater than N 
+    // [N]  denotes,   can access only N by value 
+    vector<int>:: iterator p = find_if(v1.begin(), v1.end(), [N](int i) 
+    { 
+        return i > N; 
+    }); 
+  
+    cout << "First number greater than 5 is : " << *p << endl; 
+    //     We can also access function by storing this into variable 
+    auto square = [](int i) 
+    { 
+        return i * i; 
+    }; 
+    cout << "Square of 5 is : " << square(5) << endl; 
+```
 ### Exceptions
 ---
 * Any throw in constructer will block the constructer to move, and the destructor will not invoked. So that, constructor should handle memory management itself.
@@ -389,3 +534,125 @@ from A
 from Base
 ```
 The important thing to note here is the order of destruction of classes and how Base’s method reverts back to its own implementation once A has been destroyed.
+
+## C++17
+---
+---
+### New features
+---
+References: 
+https://www.codingame.com/playgrounds/2205/7-features-of-c17-that-will-simplify-your-code/introduction
+
+Structured bindings/Decomposition declarations
+Init-statement for if/switch
+Inline variables
+constexpr if
+Fold expressions
+Template argument deduction for class templates
+Declaring non-type template parameters with auto
+Namespaces  (namespace X::Y::Z{})
+
+#### Structured bindings/Decomposition declarations
+``` cpp
+#include <cstdlib>
+#include <iostream>
+#include <set>
+#include <string>
+#include <iterator>
+
+#include <tuple>
+
+// { autofold 
+struct S {
+    int n;
+    std::string s;
+    float d;
+    bool operator<(const S& rhs) const
+    {
+        // compares n to rhs.n,
+        // then s to rhs.s,
+        // then d to rhs.d
+        return std::tie(n, s, d) < std::tie(rhs.n, rhs.s, rhs.d);
+    }
+};
+// }
+
+int main()
+{
+    std::set<S> mySet;
+ 
+    // pre C++17:
+    {
+	    S value{42, "Test", 3.14};
+	    std::set<S>::iterator iter;
+	    bool inserted;
+ 
+	    // unpacks the return val of insert into iter and inserted
+	    std::tie(iter, inserted) = mySet.insert(value);
+
+	    if (inserted)
+		    std::cout << "Value was inserted\n";
+    }
+	
+	// with C++17:
+    {
+        S value{100, "abc", 100.0};
+        const auto [iter, inserted] = mySet.insert(value);
+		
+        if (inserted)
+		    std::cout << "Value(" << iter->n << ", " << iter->s << ", ...) was inserted" << "\n";
+    }
+        
+}
+```
+Some of the other usages:
+```cpp
+auto& [ refA, refB, refC, refD ] = myTuple;
+
+std::map myMap;    
+for (const auto & [k,v] : myMap) 
+{  
+    // k - key
+    // v - value
+} 
+```
+
+### Init-statement for if/switch (if initializer)
+```cpp
+if (const auto it = myString.find("Hello"); it != std::string::npos)
+    std::cout << it << " Hello\n";
+
+if (const auto it = myString.find("World"); it != std::string::npos)
+    std::cout << it << " World\n";
+    
+if (const auto it = myString.find("World"); it != std::string::npos)
+    std::cout << it << " World\n";
+else
+    std::cout << it << " not found!!\n";
+    
+// better together: structured bindings + if initializer
+if (auto [iter, succeeded] = mymap.insert(value); succeeded) {
+    use(iter);  // ok
+    // ...
+} // iter and succeeded are destroyed here
+```
+
+### constexpr if
+C++17 adds a constexpr if statement, which tells the compiler to specifically optimize the branch at compile time. If the compiler cannot optimize the if statement, an explicit compile-time error will occur, telling the user that optimization could not be done, providing the user with an opportunity to fix the issue (instead of assuming the optimization was taking place when in fact it might not be).
+
+```cpp
+#include <iostream>
+int main(void)
+{
+    if constexpr (constexpr const auto i = 42; i > 0) {
+        std::cout << "Hello World\n";
+    }
+}
+```
+We have a more complicated if statement that leverages both a compile-time constexpr optimization as well as an if statement
+initializer.
+
+## Managing DLLS
+### Windows Way
+`__declspec(dllexport)` tells the linker that you want this object to be made available for other DLL's to import. It is used when creating a DLL that others can link to.
+`__declspec(dllimport)` imports the implementation from a DLL so your application can use it.
