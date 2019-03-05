@@ -14,8 +14,12 @@
 * lambdas
 * RAII (Resource Acquisition Is Initialization)
 * Type Safety
-* RTTI
+* RTTI (Run Time Type Information)
 * override keyword
+* explicit vs implicit casting
+* upcasting and downcasting
+* storage specifiers (static, extern, )
+* type qualifiers (const, volatile, )
 
 ## C++ Guide
 http://www.stroustrup.com/C++11FAQ.html
@@ -423,14 +427,72 @@ There are 5 different types of casts:
 * dynamic casts, and 
 * reinterpret casts.
 
-### Downcasting vs upcasting
-* C++ will implicitly let you convert a Derived pointer into a Base pointer (in fact, getObject() does just that). This process is sometimes called upcasting. 
-* Converting base-class pointers into derived-class pointers. This process is called downcasting
+! C++ type casts are safer than c-style casts because they will return null or throw exception on error. 
 
 
-### dynamic_cast vs static_cast
+#### const_cast
+* const_cast can be used to pass const data to a function that doesn’t receive const.
+* It is undefined behavior to modify a value which is initially declared as const.
+* const_cast is considered safer than simple type casting. It’safer in the sense that the casting won’t happen if the type of cast is not same as original object.
+* const_cast is considered safer than simple type casting. It’safer in the sense that the casting won’t happen if the type of cast is not same as original object. 
+    ```cpp
+    int a1 = 40; 
+    const int* b1 = &a1; 
+    char* c1 = const_cast <char *> (b1); // compiler error 
+    *c1 = 'A'; 
+    ```
+* const_cast can also be used to cast away volatile attribute.
+
+#### dynamic_cast vs static_cast
 Dynamic_cast should be used when downcasting.
 Otherwise static_cast will be the option. 
+
+If dynamic_cast is used to convert to a reference type and the conversion is not possible, an exception of type `bad_cast` is thrown instead.
+
+http://www.cplusplus.com/doc/tutorial/typecasting
+
+#### dynamic_cast
+* for both upcasts  and downcast
+* Dynamic_cast should be used when downcasting if -and only if- the pointed object is a valid complete object of the target type. It returns a `null pointer` to indicate the failure.
+* it will return null pointer, bad_cast exception(for references) for error.
+* It will return valid pointer on succces.
+
+#### static_cast
+* for both upcasts  and downcast
+* No checks are performed during runtime to guarantee that the object being converted is in fact a full object of the destination type. 
+* Therefore, it is up to the programmer to ensure that the conversion is safe. 
+* On the other side, it does not incur the overhead of the type-safety checks of dynamic_cast.
+* This would be valid code, although b would point to an incomplete object of the class and could lead to runtime errors if dereferenced.
+    ```c
+    class Base {};
+    class Derived: public Base {};
+    Base * a = new Base;
+    Derived * b = static_cast<Derived*>(a);
+    ```
+#### reinterpret_cast 
+* it converts any pointer type to any other pointer type, even of unrelated classes. 
+* The operation result is a simple binary copy of the value from one pointer to the other.
+* Dereferencing resulted pointer `b` is not safe.
+    ```c
+    class A { /* ... */ };
+    class B { /* ... */ };
+    A * a = new A;
+    B * b = reinterpret_cast<B*>(a);
+    ```
+
+### explicit vs implicit casting
+Implicit casting:
+`
+int i = 5;
+double d = i;
+`
+
+
+### Downcasting vs upcasting
+upcasting: converting from pointer-to-derived to pointer-to-base
+downcasting: converting from pointer-to-base to pointer-to-derived
+* C++ will implicitly let you convert a Derived pointer into a Base pointer (in fact, getObject() does just that). This process is sometimes called upcasting. 
+* Converting base-class pointers into derived-class pointers. This process is called downcasting
 
 ### Downcasting vs virtual functions
 In general, using a virtual function should be preferred over downcasting. However, there are times when downcasting is the better choice:
@@ -438,6 +500,9 @@ In general, using a virtual function should be preferred over downcasting. Howev
 * When you can not modify the base class to add a virtual function (e.g. because the base class is part of the standard library)
 * When you need access to something that is derived-class specific (e.g. an access function that only exists in the derived class)
 * When adding a virtual function to your base class doesn’t make sense (e.g. there is no appropriate value for the base class to return). Using a pure virtual function may be an option here if you don’t need to instantiate the base class.
+
+### What is `const volatile`?
+const and volatile sound like they refer to the same idea on a variable, but they don't. A `const` variable can't be changed by the current code. A `volatile` variable may be changed by some outside entity outside the current code. It's possible to have a const volatile variable - especially something like a memory mapped register - that gets changed by the computer at a time your program can't predict, but that your code is not allowed to change directly.
 
 ### Some Keywords
 #### Data Structures
