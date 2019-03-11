@@ -20,13 +20,55 @@
 * upcasting and downcasting
 * storage specifiers (static, extern, )
 * type qualifiers (const, volatile, )
+* explicit vs implicit constructors
+* stack unwinding
+* reference counting (shared_ptr)
 
-## C++ Guide
+## References 
+https://www.mytectra.com/interview-question/top-advanced-c-programming-interview-questions-2017/
+https://hackernoon.com/how-to-improve-your-c-skills-from-awesome-projects-251b300ed5a1
+
+#### C++ Guide
 http://www.stroustrup.com/C++11FAQ.html
 https://channel9.msdn.com/Events/GoingNative/2013/An-Effective-Cpp11-14-Sampler
+## Paradigms
+C++ is not just an object-oriented language. As Bjarne Stroustrup points out, “C++ is a multi-paradigmed language.” It supports many different styles of programs or paradigms, and object-oriented programming is only one of these. Some of the others are procedural programming and generic programming.
 
-### References 
-https://www.mytectra.com/interview-question/top-advanced-c-programming-interview-questions-2017/
+Paradigms supported by C++:
+* Object Oriented Programming (OOP)
+* Procedural Programming
+* Generic Programming
+* Functional Programming
+
+## Object Oriented Programming (OOP) Basics
+### Inheritance
+In object-oriented programming (OOP), inheritance is a way to establish Is-a relationship between objects. It is often confused as a way to reuse the existing code which is not a good practice because inheritance for implementation reuse leads to Tight Coupling. Re-usability of code is achieved through composition (Composition over inheritance). 
+
+### Polymorhism
+
+### Encapsulation
+
+### Coupling and Cohesion
+
+#### Single Responsibility
+
+## Procedural Programming
+Procedural programming (PP), also known as inline programming takes a top-down approach. It is about writing a list of instructions to tell the computer what to do step by step. It relies on procedures or routines.
+
+* Global functions
+* Static global functions
+
+## Generic Programming
+C++ provides unique abilities to express the ideas of Generic Programming through templates. Templates provide a form of parametric polymorphism that allows the expression of generic algorithms and data structures. The instantiation mechanism of C++ templates ensures that when a generic algorithm or data structure is used, a fully-optimized and specialized version will be created and tailored for that particular use, allowing generic algorithms to be as efficient as their non-generic counterparts.
+
+Templates popularized the notion of generics. Templates allow code to be written without consideration of the type with which it will eventually be used. Templates are defined in the Standard Template Library (STL), where generic programming was introduced into C++.
+
+## Functional Programming
+Functional programming (FP) is about passing data from function to function to function to get a result. In FP, functions are treated as data, meaning you can use them as parameters, return them, build functions from other functions, and build custom functions. Functions in FP have to be pure functions, they should avoid shared state, and side effects and data should be immutable.
+### Pure Functions
+A pure function is a function that given the same type of input will always return the same output, it is not dependent on a local or global state. 
+### Shared State
+A shared state is a state that is shared between more than one function or more than one data-structure. So with shared state, in order to understand the effects of a function, you need to know all the details of every shared variable. It adds a lot of complexity and permits less modularity.
 
 ### What is difference between C and C++ ?
 * C++ is Multi-Paradigm: OOP + Procedural
@@ -118,11 +160,12 @@ The volatile keyword informs the compiler that a variable will be used by multip
 The mutable keyword can be used for class member variables. Mutable variables are allowed to change from within const member functions of the class.
 
 ### What is `RAII`?
+(Resource Acquisition Is Initialization)
 Specifically, RAII ensures that the acquisition of a resource occurs at the initialization of the object, and the release of the resources occurs when the object is no longer needed.
 `std::unique_ptr[]` and `std::shared_ptr{}` leverage this exact design pattern
 
 ### What is `RTTI`?
-
+RTTI refers to the ability of the system to report on the dynamic type of an object and to provide information about that type at runtime (as opposed to at compile time). However, RTTI becomes controversial within the C++ community. Many C++ developers chose to not use this mechanism.
 
 ### What is `Type Safety`?
 Standard C is not a type-safe language. Type safety refers to protections put in place to prevent one type from being confused with another type. 
@@ -190,9 +233,23 @@ C++17 adds a `constexpr if` statement, which tells the compiler to specifically 
 The principal difference between const and constexpr is the time when their initialization values are known (evaluated). While the values of const variables can be evaluated at both compile time and runtime, constexpr are always evaluated at compile time.
 
 ### What are smart pointers? ###
+It is a wrapper around raw pointers. You don`t need to free memory manually. Smart pointers does so through its destructor. They will be deleted on out of scope.
 * std::unique_ptr, 
 * std::shared_ptr, 
 * std::weak_ptr
+They are resided in <memory>.
+
+#### std::unique_ptr
+* You cannot copy std::unique_ptr.
+* It will delete the memory upon destruction.
+
+#### std::shared_ptr
+* References are counted. Each increases reference by 1.
+* More shared_ptr can points to same memory.
+* Memory will be destroyed after all the shared pointers are destroyed.
+
+#### std::weak_ptr
+* It shares the memory with other pointers but doesnt increases reference by 1.
 
 ### What are the main differences between pointer and reference?
 * Reference can only be initialized, not reassigned. It is just an `alias`. Has no own address in memory, it shares the same adress with the object it refers to.
