@@ -780,7 +780,59 @@ int main(void)
 We have a more complicated if statement that leverages both a compile-time constexpr optimization as well as an if statement
 initializer.
 
-## Managing DLLS
-### Windows Way
+# Managing DLLS
+## Windows Way
 `__declspec(dllexport)` tells the linker that you want this object to be made available for other DLL's to import. It is used when creating a DLL that others can link to.
 `__declspec(dllimport)` imports the implementation from a DLL so your application can use it.
+
+# GDB
+#### Compilation the code
+```c
+gcc -std=c99 -g -o test test.c
+```
+* `g` flag means you can see the proper names of variables and functions in your stack frames, get line numbers and see the source as you step around in the executable.
+* `-std=C99` flag implies use standard C99 to compile the code.
+* `-o` flag writes the build output to an output file.
+
+#### Some useful commands
+Here are few useful commands to get started with gdb for the above example:-
+* run or r –> executes the program from start to end.
+* break or b –> sets breakpoint on a particular line.
+* disable -> disable a breakpoint.
+* enable –> enable a disabled breakpoint.
+* next or n -> executes next line of code, but don’t dive into functions.
+* step –> go to next instruction, diving into the function.
+* list or l –> displays the code.
+* print or p –> used to display the stored value.
+* quit or q –> exits out of gdb.
+clear –> to clear all breakpoints.
+continue –> continue normal execution.
+
+#### Example
+https://www.geeksforgeeks.org/gdb-step-by-step-introduction/
+```c
+// sample program to show undefined behaviour
+#include<stdio.h>
+
+int main()
+{
+    int x;
+    int a=x;
+    int b=x;
+    int c=a+b;
+    printf("%d\n",c);
+    return 0;
+}
+```
+
+```c
+gdb ./test
+l
+b 5
+info b
+disable b
+enable b
+r
+p x
+p c
+```
