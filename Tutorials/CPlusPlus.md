@@ -785,6 +785,20 @@ initializer.
 `__declspec(dllexport)` tells the linker that you want this object to be made available for other DLL's to import. It is used when creating a DLL that others can link to.
 `__declspec(dllimport)` imports the implementation from a DLL so your application can use it.
 
+There are two types of linking: implicit linking and explicit linking.
+
+## What is explicit linking?
+With explicit linking, applications must make a function call to explicitly load the DLL at run time. To explicitly link to a DLL, an application must:
+* Call `LoadLibrary` (or a similar function) to load the DLL and obtain a module handle.
+* Call `GetProcAddress` to obtain a function pointer to each exported function that the application wants to call. Because applications are calling the DLL's functions through a pointer, the compiler does not generate external references, so there is no need to link with an import library.
+* Call `FreeLibrary` when done with the DLL.
+
+## What is implicit linking?
+o implicitly link to a DLL, executables must obtain the following from the provider of the DLL:
+* A `header file (.h file)` containing the declarations of the exported functions and/or C++ classes. The classes, functions, and data should all have __declspec(dllimport), for more information, see dllexport, dllimport.
+* An `import library (.LIB files)` to link with. (The linker creates the import library when the DLL is built.)
+* The actual `DLL (.dll file)`.
+
 # GDB
 #### Compilation the code
 ```c
