@@ -28,9 +28,20 @@
 https://www.mytectra.com/interview-question/top-advanced-c-programming-interview-questions-2017/
 https://hackernoon.com/how-to-improve-your-c-skills-from-awesome-projects-251b300ed5a1
 
-#### C++ Guide
+### C++ Guide
 http://www.stroustrup.com/C++11FAQ.html
 https://channel9.msdn.com/Events/GoingNative/2013/An-Effective-Cpp11-14-Sampler
+
+### Concurrency
+https://baptiste-wicht.com/posts/2012/03/cp11-concurrency-tutorial-part-2-protect-shared-data.html
+https://thispointer.com/c-11-multithreading-part-1-three-different-ways-to-create-threads/
+
+## Best Practices
+* Make your classes thread-safe if they are used by multiple threads.
+   *  mutex.lock() and mutex.unlock()
+* Use RAII in thread safe classes to be resistable to exceptions. 
+   * std::lock_guard<std::mutex> guard(mutex);
+
 ## Paradigms
 C++ is not just an object-oriented language. As Bjarne Stroustrup points out, “C++ is a multi-paradigmed language.” It supports many different styles of programs or paradigms, and object-oriented programming is only one of these. Some of the others are procedural programming and generic programming.
 
