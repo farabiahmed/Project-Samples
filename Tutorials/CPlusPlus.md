@@ -28,6 +28,32 @@
 https://www.mytectra.com/interview-question/top-advanced-c-programming-interview-questions-2017/
 https://hackernoon.com/how-to-improve-your-c-skills-from-awesome-projects-251b300ed5a1
 
+## FAQ
+### Why C++ is faster than the Javascript?
+* C++ is a fully compiled language - so there is no runtime parsing of source code and no “just in time” compilation cost.
+* C++ does not use “garbage collection” - which basically requires JavaScript to periodically stop - and look at EVERY reference to an allocated memory block to see if it’s no longer needed.
+* The reason C++ is faster is because it’s very natural to allocate memory for your data structures in advance, and C++ data structures can often be packed much more efficiently into contiguous blocks of data, which make it much easier for the processor to optimize for cache. 
+* In JavaScript, because of the dynamic nature of the language, any variable name could point to any data type. This makes it much more difficult to allocate in advance, and much more difficult to pack data in arrays (it’s just a bunch of pointers to objects on the heap).
+* In short, C++ tries to force the programmer to organize data in a way that is efficient for the machine. JavaScript is focused on making data organization easy for the programmer and can’t give the machine any guarantees about what it will need before the code runs. 
+
+### What is the difference between a `strongly typed` language and a `weakly/loosely typed` language?
+* In a weakly typed language, the type of a value depends on how it is used. For example if I can pass a string to the addition operator and it will AutoMagically be interpreted as a number or cause an error if the contents of the string cannot be translated into a number.
+* In a strongly typed language, a value has a type and that type cannot change. What you can do to a value depends on the type of the value. The advantage of a strongly typed language is that you are forced to make the behaviour of your program explicit. 
+
+### What us `static/dynamic typing`?
+* Static typing is where the type is bound to the variable. Types are checked at compile time.
+* Dynamic typing is where the type is bound to the value. Types are checked at run time.
+
+### What is `bytecode`?
+Bytecode is program code that has been compiled from source code into low-level code designed for a software interpreter. It may be executed by a virtual machine (such as a JVM) or further compiled into machine code, which is recognized by the processor.
+* *Remember*: C++ must compile into object code, then to machine language. Because of this, it's possible for Java to compile only a single class for minor changes, while C++ object files must be re-linked with other object files to machine code executable (or DLLs). This may make the process take a bit longer.
+
+### What is the difference between `JVM` and `JIT`?
+* Java source code is compiled into class files, which contains byte code. These byte codes are then executed by JVM. 
+* Since execution of byte code is slower than execution of machine language code, because JVM first needs to translate byte code into machine language code. 
+* JIT helps JVM here by compiling currently executing byte code into machine language. JIT also offers caching of compiled code which result in improved performance of JVM.
+* Java compiles to JVM bytecode at compile-time, but, like JavaScript, it is JIT compiled at runtime, but it is nonetheless generally faster. 
+ 
 ### C++ Guide
 http://www.stroustrup.com/C++11FAQ.html
 https://channel9.msdn.com/Events/GoingNative/2013/An-Effective-Cpp11-14-Sampler
@@ -861,3 +887,35 @@ r
 p x
 p c
 ```
+
+# Concurrency
+### What is `std::recursive_mutex`?
+This mutex can be acquired several times by the same thread.
+```c
+std::recursive_mutex mutex;
+
+void div(int x){
+    std::lock_guard<std::recursive_mutex> lock(mutex);
+    i /= x;
+}
+    
+void mul(int x){
+    std::lock_guard<std::recursive_mutex> lock(mutex);
+    i *= x;
+}
+
+void both(int x, int y){
+    std::lock_guard<std::recursive_mutex> lock(mutex);
+    mul(x);
+    div(y);
+}
+```
+Without recursive mutex it will stuck in `deadlock`. In the both() function, the thread acquires the lock and then calls the mul() function. In this function, the threads tries to acquire the lock again, but the lock is already locked. This is a case of deadlock. By default, a thread cannot acquire the same mutex twice. The above example runs very well with `recursive_mutex`. 
+
+### What is `condition variable`?
+```c
+// Acquire the lock
+std::unique_lock<std::mutex> mlock(m_mutex);
+m_condVar.wait(mlock, std::bind(&Application::isDataLoaded, this));
+```
+Wait() will internally release the lock and make the thread to block. As soon as condition variable get signaled, resume the thread and again acquire the lock. Then check if condition is met or not. If condition is met then continue else again go in wait.
