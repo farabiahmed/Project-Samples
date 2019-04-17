@@ -521,8 +521,9 @@ There are 5 different types of casts:
 * dynamic casts, and 
 * reinterpret casts.
 
-! C++ type casts are safer than c-style casts because they will return null or throw exception on error. 
-
+Other properties:
+* C++ type casts are safer than c-style casts because they will return null or throw exception on error. 
+* C-style casts are unsafe.
 
 #### const_cast
 * const_cast can be used to pass const data to a function that doesn’t receive const.
@@ -548,10 +549,14 @@ http://www.cplusplus.com/doc/tutorial/typecasting
 #### dynamic_cast
 * for both upcasts  and downcast
 * Dynamic_cast should be used when downcasting if -and only if- the pointed object is a valid complete object of the target type. It returns a `null pointer` to indicate the failure.
-* it will return null pointer, bad_cast exception(for references) for error.
+* dynamic_cast on fail will cast to NULL if you are casting pointers, and throw an exception otherwise.
+** it will return null pointer, for pointer types, for error.
+** it will throw bad_cast exception, for references, for error.
 * It will return valid pointer on succces.
 
+
 #### static_cast
+* static_cast will give you a compilation error if it can't make the cast. 
 * for both upcasts  and downcast
 * No checks are performed during runtime to guarantee that the object being converted is in fact a full object of the destination type. 
 * Therefore, it is up to the programmer to ensure that the conversion is safe. 
