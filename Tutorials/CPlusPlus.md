@@ -13,6 +13,7 @@
 * move vs forward (rvalues)
 * lambdas
 * RAII (Resource Acquisition Is Initialization)
+* SBRM (scope-bound resource management) same as RAII.
 * Type Safety
 * RTTI (Run Time Type Information)
 * override keyword
@@ -58,11 +59,71 @@ Bytecode is program code that has been compiled from source code into low-level 
 http://www.stroustrup.com/C++11FAQ.html
 https://channel9.msdn.com/Events/GoingNative/2013/An-Effective-Cpp11-14-Sampler
 
-### Concurrency
+## Concurrency
 https://baptiste-wicht.com/posts/2012/03/cp11-concurrency-tutorial-part-2-protect-shared-data.html
 https://thispointer.com/c-11-multithreading-part-1-three-different-ways-to-create-threads/
+http://www.cplusplus.com/reference/condition_variable/condition_variable/
+https://en.cppreference.com/w/cpp/thread/shared_lock
+`TODO Elaborate`
 
-## Best Practices
+### What are the disadvantages of `wait loop` or `continous polling`?
+Though the sleep avoids the high CPU consumption of a direct busy wait, there are still some obvious downsides to this formulation. Let`s take the example given below for a thread that is trying tou exploit a thread-safe queue:
+```c
+   while(some_queue.empty())
+    {
+        boost::this_thread::sleep(boost::posix_time::milliseconds(50));
+    }
+```
+ * Firstly, the thread has to wake every 50ms or so (or whatever the sleep period is) in order to lock the mutex, check the queue, and unlock the mutex, forcing a `context switch`. 
+ * Secondly, the sleep period imposes a `limit on how fast the thread can respond` to data being added to the queue — if the data is added just before the call to sleep, the thread will wait at least 50ms before checking for data. On average, the thread will only respond to data after about half the sleep time (25ms here).
+ * The alternative is using `condition variable`.
+
+### Waiting with a `Condition Variable`
+https://www.justsoftwaresolutions.co.uk/threading/implementing-a-thread-safe-queue-using-condition-variables.html
+* As an alternative to continuously polling the state of the queue, the sleep in the wait loop can be replaced with a condition variable wait. 
+* If the condition variable is notified in push when data is added to an empty queue, then the waiting thread will wake. 
+* This requires access to the mutex used to protect the queue, so needs to be implemented as a member function of concurrent_queue:
+    ``` c
+    template<typename Data>
+    class concurrent_queue
+    {
+    private:
+        boost::condition_variable the_condition_variable;
+    public:
+        void wait_for_data()
+        {
+            boost::mutex::scoped_lock lock(the_mutex);
+            while(the_queue.empty())
+            {
+                the_condition_variable.wait(lock);
+            }
+        }
+        void push(Data const& data)
+        {
+            boost::mutex::scoped_lock lock(the_mutex);
+            bool const was_empty=the_queue.empty();
+            the_queue.push(data);
+            
+            /* Optimal: See the third important thing given below*/
+            lock.unlock(); // unlock the mutex
+            
+            /* SubOptimal: having no unlock here */
+            // lock.unlock(); // unlock the mutex
+            
+            if(was_empty)
+            {
+                the_condition_variable.notify_one();
+            }
+        }
+        // rest as before
+    };
+    ```
+There are three important things to note here. 
+* Firstly, the lock variable is passed as a parameter to wait — this allows the condition variable implementation to atomically unlock the mutex and add the thread to the wait queue, so that another thread can update the protected data whilst the first thread waits.
+* Secondly, the condition variable wait is still inside a while loop — condition variables can be subject to spurious wake-ups, so it is important to check the actual condition being waited for when the call to wait returns.
+* Thirdly, the call to notify_one comes after the data is pushed on the internal queue. This avoids the waiting thread being notified if the call to the_queue.push throws an exception. As written, the call to notify_one is still within the protected region, which is potentially sub-optimal: the waiting thread might wake up immediately it is notified, and before the mutex is unlocked, in which case it will have to block when the mutex is reacquired on the exit from wait. 
+
+### Best Practices
 * Make your classes thread-safe if they are used by multiple threads.
    *  mutex.lock() and mutex.unlock()
 * Use RAII in thread safe classes to be resistable to exceptions. 
@@ -130,6 +191,35 @@ STL provides:
 * Containers: list, vector, set, map …
 * Iterators
 * Algorithms: search, sort, …
+
+#### Advantages of containers
+* They eliminate an entire set of boilerplate code that you re-implement on every project. 
+* The container library also benefits from having a standardized interface for member functions. 
+* These standardized interfaces reduce your memory burden and allow containers to be used with `STL algorithms`.
+
+#### What are the container concepts?
+https://embeddedartistry.com/blog/2017/8/2/an-overview-of-c-stl-containers
+* `SequenceContainer` are used for data structures that store objects of the same type in a linear manner.
+    * std::array represents a static contiguous array
+    * std::vector represents a dynamic contiguous array
+    * std::deque represents a double-ended queue, where elements can be added to the front or back of the queue
+    * std::forward_list represents a singly-linked list
+    * std::list represents a doubly-linked list
+    * While std::string is not included in most container lists, it does in fact meet the requirements of a SequenceContainer.
+* `Container Adapters` They are not full container classes on their own, but wrappers around other container types (such as a vector, deque, or list).  
+    * std::stack provides an LIFO data structure
+    * std::queue provides a FIFO data structure
+    * std::priority_queue provides a priority queue, which allows for constant-time lookup of the largest element (by default)
+* `AssociativeContainer` provide sorted data structures that provide a fast lookup (O(log n) time) using keys. Typically implemented using red-black trees.
+    * std::set is a collection of unique keys, sorted by keys, Keys are unique
+    * std::map is a collection of key-value pairs, sorted by keys, Keys are unique
+    * std::multiset is a collection of keys, sorted by keys, Multiple entries for the same key are permitted
+    * std::multimap is a collection of key-value pairs, sorted by keys, Multiple entries for the same key are permitted
+* `UnorderedAssociativeContainer` provide unsorted data structures that can be accessed using a hash. Access times are O(n) in the worst-case, but much faster than linear time for most operations.
+    * std::unordered_set is a collection of keys, hashed by keys, Keys are unique
+    * std::unordered_map is a collection of key-value pairs, hashed by keys, Keys are unique
+    * std::unordered_multiset is a collection of keys, hashed by keys, Multiple entires for the same key are permitted
+    * std::unordered_multimap is a collection of key-value pairs, hashed by keys, Multiple entires for the same key are permitted
 
 ### What are the steps of a C++ executable?
 Building a C++ program: 3 steps
