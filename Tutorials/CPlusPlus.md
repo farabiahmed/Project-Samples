@@ -675,7 +675,50 @@ Implicit casting:
 int i = 5;
 double d = i;
 `
+### explicit vs implicit constructors
+#### Implicit Constructor:
 
+Class Declaration:
+
+```
+class A
+{
+public:
+    A();
+    A(int);
+    A(const char*, int = 0);
+};
+```
+
+```
+A c = 1;
+A d = "Venditti";
+```
+
+#### Explicit Constructor: 
+
+You can only assign values that match the values of the class type.
+
+Class Declaration:
+```
+class A
+{
+public:
+    explicit A();
+    explicit A(int);
+    explicit A(const char*, int = 0);
+};
+```
+
+```
+  A a1;
+  A a2 = A(1);
+  A a3(1);
+  A a4 = A("Venditti");
+  A* p = new A(1);
+  A a5 = (A)1;
+  A a6 = static_cast<A>(1);
+```
 
 ### Downcasting vs upcasting
 upcasting: converting from pointer-to-derived to pointer-to-base
