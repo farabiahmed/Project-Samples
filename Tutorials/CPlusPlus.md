@@ -24,6 +24,7 @@
 * explicit vs implicit constructors
 * stack unwinding
 * reference counting (shared_ptr)
+* Conditional Inheritance
 
 ## References 
 https://www.mytectra.com/interview-question/top-advanced-c-programming-interview-questions-2017/
@@ -837,6 +838,78 @@ from A
 from Base
 ```
 The important thing to note here is the order of destruction of classes and how Base’s method reverts back to its own implementation once A has been destroyed.
+
+### Conditional Inheritance
+
+```c
+#include <iostream>
+
+class LowLevelA
+{
+public:
+    LowLevelA()
+    {
+        std::cout << "LowLevelA!\n";
+    };
+    
+    void Print();
+};
+
+void LowLevelA::Print()
+{
+    std::cout << "Print LowLevelA!\n";
+}
+
+class LowLevelB
+{
+public:
+    LowLevelB()
+    {
+        std::cout << "LowLevelB!\n";
+    };
+    
+    void Print();
+};
+
+void LowLevelB::Print()
+{
+    std::cout << "Print LowLevelB!\n";
+}
+
+template <class T=LowLevelA>
+class HighLevel : public T //Here is the conditional inheritance
+{
+public:
+    HighLevel()
+    {
+       std::cout << "HighLevel!\n"; 
+    }
+            
+    void Test();
+};
+
+template <class T>    
+void HighLevel<T>::Test()
+{
+    std::cout << "HighLevel Test\n";    
+}
+
+int main()
+{
+    std::cout << "Conditional Inheritance!\n";
+    
+    HighLevel<LowLevelA> obj;
+    obj.Test();
+    obj.Print();
+}
+```
+The above will output:
+```
+LowLevelA!
+HighLevel!
+HighLevel Test
+Print LowLevelA!
+```
 
 ## C++17
 ---
