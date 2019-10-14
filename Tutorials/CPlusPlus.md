@@ -1130,3 +1130,19 @@ std::unique_lock<std::mutex> mlock(m_mutex);
 m_condVar.wait(mlock, std::bind(&Application::isDataLoaded, this));
 ```
 Wait() will internally release the lock and make the thread to block. As soon as condition variable get signaled, resume the thread and again acquire the lock. Then check if condition is met or not. If condition is met then continue else again go in wait.
+
+# Design Patterns
+* Diamond problem
+* Mix-in based inheritance
+* Dependency inversion principle
+* 
+
+## SOLID Class Design Princibles
+* S - Single-responsiblity principle
+    * A class should have one and only one reason to change, meaning that a class should have only one job.
+* O - Open-closed principle
+* L - Liskov substitution principle
+* I - Interface segregation principle
+* D - Dependency Inversion Principle
+    * Entities must depend on abstractions not on concretions. It states that the high level module must not depend on the low level module, but they should depend on abstractions.
+
