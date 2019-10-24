@@ -584,7 +584,34 @@ C++ 11 introduced lambda expression to allow us write an inline function which c
     }
     ```
 
+### What is forward decleratiion?
+```cpp
+// class.h
+class MyClassImpl; //Forward Decleration
+class MyClass {
+    // ...
+    void Foo();
+private:    
+    MyClassImpl* m_pImpl; // warning!!! 
+                          // a raw pointer! :)
+};
 
+// class.cpp
+class MyClassImpl
+{
+public:
+    void DoStuff() { /*...*/ }
+};
+
+MyClass::MyClass () : m_pImpl(new MyClassImpl()) 
+{ }
+
+MyClass::~MyClass () { delete m_pImpl; }
+
+void MyClass ::DoSth() {
+    m_pImpl->DoSth();
+}
+```
 
 ### What is implicit conversion/coercion in c++?
 ```cpp
