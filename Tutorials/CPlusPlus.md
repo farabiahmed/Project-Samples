@@ -38,7 +38,7 @@ C++11 vs C++14 http://open-std.org/JTC1/SC22/WG21/docs/papers/2018/p1319r0.html
 	* Lambda
 	* Move Semantics
 * C++17:
-	* Structured Binding
+	* Structured Binding : `auto [iter, inserted] = mySet.insert(10);`
 	* Decomposition declarations
 * C++20
 
