@@ -29,6 +29,19 @@
 ## References 
 https://www.mytectra.com/interview-question/top-advanced-c-programming-interview-questions-2017/
 https://hackernoon.com/how-to-improve-your-c-skills-from-awesome-projects-251b300ed5a1
+C++11 vs C++14 http://open-std.org/JTC1/SC22/WG21/docs/papers/2018/p1319r0.html
+
+## Versions:
+* C++11:
+	* Smart pointers
+* C++14:
+	* Lambda
+	* Move Semantics
+* C++17:
+	* Structured Binding
+	* Decomposition declarations
+* C++20
+
 
 ## FAQ
 ### Why C++ is faster than the Javascript?
