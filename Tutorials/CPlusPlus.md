@@ -25,6 +25,8 @@
 * stack unwinding
 * reference counting (shared_ptr)
 * Conditional Inheritance
+* Dynamic vs static libraries
+* Dynamic Library (implicit vs explicit linking)
 
 ## References 
 https://www.mytectra.com/interview-question/top-advanced-c-programming-interview-questions-2017/
@@ -1138,6 +1140,24 @@ r
 p x
 p c
 ```
+# Libraries
+## Dynamic vs Static Libraries
+
+## Dynamic Library
+* Two types of linking are exists:
+	* Implicit Linking
+	* Explicit Linking
+	
+### Implicit Linking
+* If linked implicitly when the program is built, then stubs for each DLL export used by the program get linked in to the program from an import library, and those stubs get updated as the EXE and the DLL are loaded when the process launches.
+
+* Those stubs need to come from somewhere, and in the Microsoft tool chain they come from a special form of .LIB file called an import library. The required .LIB is usually built at the same time as the DLL, and contains a stub for each function exported from the DLL.
+
+* Confusingly, a static version of the same library would also be shipped as a .LIB file. There is no trivial way to tell them apart, except that LIBs that are import libraries for DLLs will usually be smaller (often much smaller) than the matching static LIB would be.
+
+### Explicit Linking
+* If used explicitly at run time, you use LoadLibrary() and GetProcAddress() to manually load the DLL and get pointers to the functions you need to call.
+
 
 # Concurrency
 ### What is `std::recursive_mutex`?
