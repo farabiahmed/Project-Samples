@@ -37,8 +37,18 @@ C++11 vs C++14 http://open-std.org/JTC1/SC22/WG21/docs/papers/2018/p1319r0.html
 * C++11:
 	* Smart pointers
 * C++14:
-	* Lambda
 	* Move Semantics
+	* Auto declarations
+	* Range-based for loops
+	* Lambda expressions
+	** Generic Lambdas (auto adder  = [](auto op1, auto op2){ return op1 + op2; };)
+	** Initialized Lambda Captures (auto y = [p]() { std::cout << "inside: " << *p << "\n";};)
+	* Rvalue references
+	* New concurrency features (shared_timed_mutex)
+	* Return type deduction
+	* The [[deprecated]] Attribute
+	* Binary Literals and Digit Separators (0b1000'0001'1000'0000 and 300'000.00)
+	* 0 and typedefs are out, nullptr and alias declarations are in
 * C++17:
 	* Structured Binding : `auto [iter, inserted] = mySet.insert(10);`
 	* Decomposition declarations
@@ -46,6 +56,9 @@ C++11 vs C++14 http://open-std.org/JTC1/SC22/WG21/docs/papers/2018/p1319r0.html
 
 
 ## FAQ
+### Why C++?
+C++ is notoriously non-accommodating when it comes to plugins. C++ is extremely platform-specific and compiler-specific. The C++ standard doesn't specify an Application Binary Interface (ABI), which means that C++ libraries from different compilers or even different versions of the same compiler are incompatible. Add to that the fact that C++ has no concept of dynamic loading and each platform provide its own solution (incompatible with others) and you get the picture. There are a few heavyweight solutions that try to address more than just plugins and rely on some additional runtime support. Still, C/C++ is often the only practical option when it comes to high-performance systems.
+
 ### Why C++ is faster than the Javascript?
 * C++ is a fully compiled language - so there is no runtime parsing of source code and no “just in time” compilation cost.
 * C++ does not use “garbage collection” - which basically requires JavaScript to periodically stop - and look at EVERY reference to an allocated memory block to see if it’s no longer needed.
