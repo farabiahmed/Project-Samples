@@ -27,6 +27,23 @@
 * Type 
 * Query 
 * Contextual
+* Internal
+* IQueryable
+* IEnumerable
+
+### What is internal? ###
+---
+Internal types or members are accessible only within files in the same assembly, as in this example:
+```csharp
+public class BaseClass
+{  
+    // Only accessible within the same assembly.
+    internal static int x = 0;
+}  
+```
+Let say I have an AnimalFactory class which produces Dog, Cat and Fish. Using the AnimalFactory makes things incredibly simpler and everything is fine. My question is that Is there a rule or good practice that suggests us hide Dog, Cat and Fish from being used directly? I mean Dog myDog = new Dog(); will be forbidden in the code.
+If there is, how can we hide them properly?
+* In c#, if the consumers of Dog, Cat and Fish are on different assemblies, you can make the constructors internal, this way only the factory, which is implemented in the same assembly as your "animals" can create them.
 
 ### Define property? ###
 ---
